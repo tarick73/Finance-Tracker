@@ -1,6 +1,21 @@
+import sqlite3
 from flask import Flask, request, render_template
 
 app = Flask(__name__)
+
+
+class DB_class:
+    def __init__(self):
+        self.db_name = None
+
+    def __enter__(self):
+        self.conn = sqlite3.connect(self.db_name)
+        self.cursor = self.conn.cursor()
+        return self.cursor
+
+    def __exit__(self):
+        self.conn.commit()
+        self.conn.close()
 
 
 @app.route('/user', methods=['GET', 'DELETE'])
