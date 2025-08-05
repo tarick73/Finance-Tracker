@@ -41,7 +41,6 @@ def login_handler():
             return "You have been successfully logined "
         else:
             return "Wrong email or password"
-        return f'Hello World POST, {email} {password}'
 
 
 @app.route('/register', methods=['GET', 'POST'])
