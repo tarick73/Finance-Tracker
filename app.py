@@ -1,7 +1,12 @@
 import sqlite3
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session, redirect
 
 app = Flask(__name__)
+app.secret_key = 'lkjihasdfnmcx'
+
+
+SPEND = 1
+INCOME = 2
 
 
 class DB_class:
@@ -35,9 +40,10 @@ def login_handler():
         password = request.form['password']
 
         with DB_class('financial_tracker.db') as cursor:
-            result = cursor.execute(f"Select * from user where email = '{email}' and password = '{password}'")
+            result = cursor.execute(f"Select id from user where email = '{email}' and password = '{password}'")
             data = result.fetchone()
         if data:
+            session['user_id'] = data[0]
             return "You have been successfully logined "
         else:
             return "Wrong email or password"
@@ -77,10 +83,27 @@ def get_all_category(category_id):
 
 @app.route('/income', methods=['GET', 'POST'])
 def get_all_income123():
-    if request.method == 'GET':
-        return 'Hello World! GET'
+    if 'user_id' in session:
+        if request.method == 'GET':
+            with DB_class('financial_tracker.db') as cursor:
+                data = cursor.execute(f"SELECT * FROM 'transaction' where owner = {session['user_id']} and type = {INCOME}")
+                res = data.fetchall()
+            return render_template("dashboard.html", transactions = res)
+        else:
+            with DB_class('financial_tracker.db') as cursor:
+                transaction_description = request.form['description']
+                transaction_owner = session['user_id']
+                transaction_amount = request.form['amount']
+                transaction_category = request.form['category']
+                transaction_type = INCOME
+                transaction_date = request.form['date']
+                cursor.execute(f"INSERT INTO 'transaction' (description, owner, amount, category, type, date) "
+                               f"VALUES ('{transaction_description}', '{transaction_owner}','{transaction_amount}',"
+                               f"'{transaction_category}','{transaction_type}','{transaction_date}') ")
+            return redirect('/income')
+
     else:
-        return 'Hello World POST'
+        return redirect('/login')
 
 
 @app.route('/income/<income_id>', methods=['GET', 'PATCH', 'DELETE'])
