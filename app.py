@@ -89,7 +89,7 @@ def get_all_income123():
                 data = cursor.execute(
                     f"SELECT * FROM 'transaction' where owner = {session['user_id']} and type = {INCOME}")
                 res = data.fetchall()
-            return render_template("dashboard.html", transactions=res)
+            return render_template("dashboard-incomes.html", transactions=res)
         else:
             with DB_class('financial_tracker.db') as cursor:
                 transaction_description = request.form['description']
@@ -119,10 +119,28 @@ def get_all_income(income_id):
 
 @app.route('/spend', methods=['GET', 'POST'])
 def get_all_spend():
-    if request.method == 'GET':
-        return 'Hello World! GET'
+    if 'user_id' in session:
+        if request.method == 'GET':
+            with DB_class('financial_tracker.db') as cursor:
+                data = cursor.execute(
+                    f"SELECT * FROM 'transaction' where owner = {session['user_id']} and type = {SPEND}")
+                res = data.fetchall()
+            return render_template("dashboard-incomes.html", transactions=res)
+        else:
+            with DB_class('financial_tracker.db') as cursor:
+                transaction_description = request.form['description']
+                transaction_owner = session['user_id']
+                transaction_amount = request.form['amount']
+                transaction_category = request.form['category']
+                transaction_type = SPEND
+                transaction_date = request.form['date']
+                cursor.execute(f"INSERT INTO 'transaction' (description, owner, amount, category, type, date) "
+                               f"VALUES ('{transaction_description}', '{transaction_owner}','{transaction_amount}',"
+                               f"'{transaction_category}','{transaction_type}','{transaction_date}') ")
+            return redirect('/spend')
+
     else:
-        return 'Hello World POST'
+        return redirect('/login')
 
 
 @app.route('/spend/<spend_id>', methods=['GET', 'PATCH', 'DELETE'])
