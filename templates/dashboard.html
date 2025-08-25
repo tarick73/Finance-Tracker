@@ -1,11 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <meta charset="UTF-8" />
+    <title>Dashboard — Доходы</title>
 </head>
 <body>
-<h1>Dashboard</h1>
-<p>User transaction: {{ transactions }}</p>
+<h1>Доходы</h1>
+
+{% if transactions and transactions|length %}
+    {% set first = transactions|first %}
+    {% set n = first|length %}
+    {% set headers = ['ID', 'Description', 'Owner', 'Date', 'Category', 'Type'] %}
+
+    <table>
+        <thead>
+        <tr>
+            {% for i in range(n) %}
+                {% if i < headers|length %}
+                    <th>{{ headers[i] }}</th>
+                {% else %}
+                    <th>Column {{ i }}</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in transactions %}
+            <tr>
+                {% for cell in row %}
+                    <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No incomes yet</p>
+{% endif %}
+
 </body>
 </html>

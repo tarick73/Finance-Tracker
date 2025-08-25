@@ -4,7 +4,6 @@ from flask import Flask, request, render_template, session, redirect
 app = Flask(__name__)
 app.secret_key = 'lkjihasdfnmcx'
 
-
 SPEND = 1
 INCOME = 2
 
@@ -59,7 +58,8 @@ def register_handler():
         password = request.form['password']
         email = request.form['email']
         with DB_class('financial_tracker.db') as cursor:
-            cursor.execute("INSERT INTO user (name, surname, password, email) VALUES (?, ?, ?, ?)", (name,surname, password,email))
+            cursor.execute("INSERT INTO user (name, surname, password, email) VALUES (?, ?, ?, ?)",
+                           (name, surname, password, email))
         return f'User, {name}, was registered'
 
 
@@ -86,9 +86,10 @@ def get_all_income123():
     if 'user_id' in session:
         if request.method == 'GET':
             with DB_class('financial_tracker.db') as cursor:
-                data = cursor.execute(f"SELECT * FROM 'transaction' where owner = {session['user_id']} and type = {INCOME}")
+                data = cursor.execute(
+                    f"SELECT * FROM 'transaction' where owner = {session['user_id']} and type = {INCOME}")
                 res = data.fetchall()
-            return render_template("dashboard.html", transactions = res)
+            return render_template("dashboard.html", transactions=res)
         else:
             with DB_class('financial_tracker.db') as cursor:
                 transaction_description = request.form['description']
