@@ -1,6 +1,10 @@
 import sqlite3
 from flask import Flask, request, render_template, session, redirect
 
+import database
+import models
+from sqlalchemy import select
+from database import db_session, init_db
 app = Flask(__name__)
 app.secret_key = 'lkjihasdfnmcx'
 
@@ -68,11 +72,10 @@ def login_handler():
     else:
         email = request.form['email']
         password = request.form['password']
-
-        db = DB_wrapper()
-        data= db.select('user',{'email': email, 'password': password})
+        init_db()
+        data = list(db_session.execute(select(models.User).filter_by(email=email, password=password)).scalars())
         if data:
-            session['user_id'] = data[0]['id']
+            session['user_id'] = data[0].id
             return "You have been successfully logined "
         else:
             return "Wrong email or password"
@@ -87,8 +90,10 @@ def register_handler():
         surname = request.form['surname']
         password = request.form['password']
         email = request.form['email']
-        db = DB_wrapper()
-        db.insert('user',{'name': name, 'surname':surname, 'password': password, 'email': email})
+        init_db()
+        new_user = models.User(name=name, surname=surname, password=password, email=email)
+        database.db_session.add(new_user)
+        database.db_session.commit()
         return f'User, {name}, was registered'
 
 
@@ -96,14 +101,18 @@ def register_handler():
 def get_all_category123():
     if 'user_id' in session:
         if request.method == 'GET':
-            db = DB_wrapper()
-            res = db.select('category', {'owner': [session['user_id'], 1]})
-            return render_template("all_categories.html", categories=res)
+            init_db()
+            categories = list(db_session.execute(select(models.Category).filter_by(owner=session['user_id'])).scalars())
+            categories_system = list(db_session.execute(select(models.Category).filter_by(owner=1)).scalars())
+            return render_template("all_categories.html", categories=categories+categories_system)
         else:
             category_name = request.form['category_name']
             category_owner = session['user_id']
-            db = DB_wrapper()
-            db.insert('category', {'name':category_name, 'owner': category_owner})
+            init_db()
+
+            new_category = models.Category(name=category_name, owner=category_owner)
+            database.db_session.add(new_category)
+            database.db_session.commit()
             return redirect('/category')
     else:
         return redirect('/login')
@@ -114,10 +123,9 @@ def get_all_category(category_id):
     if 'user_id' in session:
         with DB_class('financial_tracker.db') as cursor:
             if request.method == 'GET':
-                db = DB_wrapper()
-                res = db.select('"transaction"', {'category': category_id, 'owner': session['user_id']})
-
-                curr_category = db.select('category', {'id': category_id})
+                init_db()
+                res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])).scalars())
+                curr_category = list(db_session.execute(select(models.Category).filter_by(id=category_id)).scalars())
 
                 return render_template("one_category.html", transactions=res, category=curr_category)
             else:
@@ -127,9 +135,12 @@ def get_all_category(category_id):
 @app.route('/income', methods=['GET', 'POST'])
 def get_all_income123():
     if 'user_id' in session:
+        init_db()
         if request.method == 'GET':
-            db = DB_wrapper()
-            res = db.select('"transaction"', {'owner': session['user_id'], 'type': INCOME})
+            #db = DB_wrapper()
+            #res = db.select('"transaction"', {'owner': session['user_id'], 'type': INCOME})
+
+            res = list(db_session.execute(select(models.Transaction).filter_by( tr_owner=session['user_id'],tr_type=INCOME)).scalars())
             return render_template("dashboard-incomes.html", transactions=res)
         else:
             transaction_description = request.form['description']
@@ -138,8 +149,12 @@ def get_all_income123():
             transaction_category = request.form['category']
             transaction_type = INCOME
             transaction_date = request.form['date']
-            db = DB_wrapper()
-            db.insert('"transaction"', {'description': transaction_description, 'owner': transaction_owner, 'amount': transaction_amount, 'category': transaction_category, 'type': transaction_type, 'date': transaction_date})
+
+            new_transaction = models.Transaction(description=transaction_description, owner=transaction_owner,
+                                                 amount=transaction_amount, category=transaction_category,
+                                                 type=transaction_type, date=transaction_date)
+            database.db_session.add(new_transaction)
+            database.db_session.commit()
 
             return redirect('/income')
 
@@ -163,7 +178,7 @@ def get_all_spend():
         if request.method == 'GET':
             db = DB_wrapper()
             res = db.select('"transaction"', {'owner': session['user_id'], 'type': SPEND})
-            return render_template("dashboard-incomes.html", transactions=res)
+            return render_template("dashboard-spend.html", transactions=res)
         else:
             transaction_description = request.form['description']
             transaction_owner = session['user_id']

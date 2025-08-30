@@ -2,15 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Dashboard — Доходы</title>
+    <title>Dashboard — Incomes</title>
 </head>
 <body>
-<h1>Доходы</h1>
+<h1>Incomes</h1>
 
 {% if transactions and transactions|length %}
     {% set first = transactions|first %}
     {% set n = first|length %}
-    {% set headers = ['ID', 'Description', 'Owner', 'Date', 'Category', 'Type'] %}
+    {% set headers = ['ID', 'Description', 'Owner', 'Date', 'Category', 'Type', 'Amount'] %}
 
     <table>
         <thead>
