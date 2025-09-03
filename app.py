@@ -12,51 +12,6 @@ SPEND = 1
 INCOME = 2
 
 
-class DB_class:
-    def __init__(self, db_name):
-        self.db_name = db_name
-
-    def __enter__(self):
-        self.conn = sqlite3.connect(self.db_name)
-        self.conn.row_factory = sqlite3.Row
-        self.cursor = self.conn.cursor()
-        return self.cursor
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.conn.commit()
-        self.conn.close()
-
-
-class DB_wrapper:
-    def insert(self, table, data):
-        with DB_class('financial_tracker.db') as cursor:
-            cursor.execute(f"INSERT INTO {table} ({', '.join(data.keys())}) VALUES ({', '.join(['?'] * len(data))})", tuple(data.values()))
-    def select(self, table, params=None):
-        with DB_class('financial_tracker.db') as cursor:
-            if params:
-                #{
-                    #'id':'1',
-                    #'name':'Igor',
-                    #'surname':'asdas',
-                    #'email':'email',
-                    #
-                #}
-                result_params=[]
-                for key, value in params.items():
-                    if isinstance(value, list):
-                        result_params.append(f"{key} IN {', '.join(value)}")
-                    else:
-                        if isinstance(value, str):
-                            result_params.append(f"{key}= '{value}'")
-                        else:
-                            result_params.append(f"{key}= {value}")
-                result_where = ' AND '.join(result_params)
-
-                cursor.execute(f"SELECT * FROM {table} WHERE {result_where}")
-            else:
-                cursor.execute(f"SELECT * FROM {table}")
-            return cursor.fetchall()
-
 @app.route('/user', methods=['GET', 'DELETE'])
 def user_handler():
     if request.method == 'GET':
@@ -138,7 +93,6 @@ def get_all_income123():
         init_db()
         if request.method == 'GET':
             res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'], type=INCOME)).scalars().all())
-            print(res)
             return render_template("dashboard-incomes.html", transactions=res)
         else:
             transaction_description = request.form['description']
@@ -173,9 +127,9 @@ def get_all_income(income_id):
 @app.route('/spend', methods=['GET', 'POST'])
 def get_all_spend():
     if 'user_id' in session:
+        init_db()
         if request.method == 'GET':
-            db = DB_wrapper()
-            res = db.select('"transaction"', {'owner': session['user_id'], 'type': SPEND})
+            res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'], type=SPEND)).scalars().all())
             return render_template("dashboard-spend.html", transactions=res)
         else:
             transaction_description = request.form['description']
@@ -185,8 +139,11 @@ def get_all_spend():
             transaction_type = SPEND
             transaction_date = request.form['date']
 
-            db = DB_wrapper()
-            db.insert('"transaction"', {'description': transaction_description, 'owner': transaction_owner, 'amount': transaction_amount, 'category': transaction_category, 'type': transaction_type, 'date': transaction_date})
+            new_transaction = models.Transaction(description=transaction_description, owner=transaction_owner,
+                                                     amount=transaction_amount, category=transaction_category,
+                                                     type=transaction_type, date=transaction_date)
+            database.db_session.add(new_transaction)
+            database.db_session.commit()
             return redirect('/spend')
 
     else:
