@@ -27,7 +27,8 @@ class Transaction(Base):
     __tablename__ = 'transaction'
     id = Column(Integer, primary_key=True)
     description = Column(String(100))
-    category = ForeignKey('category_id', ondelete='CASCADE')
-    date = Column(DateTime)
-    owner = ForeignKey('user_id', ondelete='CASCADE')
+    category = Column(ForeignKey('category_id', ondelete='CASCADE'))
+    date = Column(Integer)
+    owner = Column(ForeignKey('user_id', ondelete='CASCADE'))
     type = Column(Integer)
+    amount = Column(Integer)

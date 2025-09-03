@@ -137,10 +137,8 @@ def get_all_income123():
     if 'user_id' in session:
         init_db()
         if request.method == 'GET':
-            #db = DB_wrapper()
-            #res = db.select('"transaction"', {'owner': session['user_id'], 'type': INCOME})
-
-            res = list(db_session.execute(select(models.Transaction).filter_by( tr_owner=session['user_id'],tr_type=INCOME)).scalars())
+            res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'], type=INCOME)).scalars().all())
+            print(res)
             return render_template("dashboard-incomes.html", transactions=res)
         else:
             transaction_description = request.form['description']
