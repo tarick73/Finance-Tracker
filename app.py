@@ -5,6 +5,7 @@ import database
 import models
 from sqlalchemy import select
 from database import db_session, init_db
+
 app = Flask(__name__)
 app.secret_key = 'lkjihasdfnmcx'
 
@@ -59,7 +60,7 @@ def get_all_category123():
             init_db()
             categories = list(db_session.execute(select(models.Category).filter_by(owner=session['user_id'])).scalars())
             categories_system = list(db_session.execute(select(models.Category).filter_by(owner=1)).scalars())
-            return render_template("all_categories.html", categories=categories+categories_system)
+            return render_template("all_categories.html", categories=categories + categories_system)
         else:
             category_name = request.form['category_name']
             category_owner = session['user_id']
@@ -76,15 +77,14 @@ def get_all_category123():
 @app.route('/category/<category_id>', methods=['GET', 'POST'])
 def get_all_category(category_id):
     if 'user_id' in session:
-        with DB_class('financial_tracker.db') as cursor:
-            if request.method == 'GET':
-                init_db()
-                res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])).scalars())
-                curr_category = list(db_session.execute(select(models.Category).filter_by(id=category_id)).scalars())
+        if request.method == 'GET':
+            init_db()
+            res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])).scalars())
+            curr_category = list(db_session.execute(select(models.Category).filter_by(id=category_id)).scalars())
 
-                return render_template("one_category.html", transactions=res, category=curr_category)
-            else:
-                return f"Hello World! DELETE, {category_id}"
+            return render_template("one_category.html", transactions=res, category=curr_category)
+        else:
+            return f"Hello World! DELETE, {category_id}"
 
 
 @app.route('/income', methods=['GET', 'POST'])
@@ -92,7 +92,8 @@ def get_all_income123():
     if 'user_id' in session:
         init_db()
         if request.method == 'GET':
-            res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'], type=INCOME)).scalars().all())
+            res = list(db_session.execute(
+                select(models.Transaction).filter_by(owner=session['user_id'], type=INCOME)).scalars().all())
             return render_template("dashboard-incomes.html", transactions=res)
         else:
             transaction_description = request.form['description']
@@ -129,7 +130,8 @@ def get_all_spend():
     if 'user_id' in session:
         init_db()
         if request.method == 'GET':
-            res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'], type=SPEND)).scalars().all())
+            res = list(db_session.execute(
+                select(models.Transaction).filter_by(owner=session['user_id'], type=SPEND)).scalars().all())
             return render_template("dashboard-spend.html", transactions=res)
         else:
             transaction_description = request.form['description']
@@ -140,8 +142,8 @@ def get_all_spend():
             transaction_date = request.form['date']
 
             new_transaction = models.Transaction(description=transaction_description, owner=transaction_owner,
-                                                     amount=transaction_amount, category=transaction_category,
-                                                     type=transaction_type, date=transaction_date)
+                                                 amount=transaction_amount, category=transaction_category,
+                                                 type=transaction_type, date=transaction_date)
             database.db_session.add(new_transaction)
             database.db_session.commit()
             return redirect('/spend')
