@@ -1,0 +1,10 @@
+# created by virtualenv automatically
+.idea
+__pycache__
+roadmap.png
+__pycache__/
+*.py[cod]
+.venv/
+env/
+venv/
+.gitignore
