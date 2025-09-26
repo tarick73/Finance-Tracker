@@ -1,23 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>current category</title>
+    <meta charset="UTF-8">
+    <title>Title</title>
 </head>
 <body>
-<form action="/category/{{ category.id }}" method="post">
-    <label for="category_name">category_name:</label><br>
-    <input type="text" id="category_name" name="category_name" value="{{ category.name }}"><br><br>
-    <input type="submit" value="Submit">
+<form action="/category/{{ one_category.id }}/edit" method="post">
+    <label for="name">Category Name:</label>
+    <input type="text" name="category_name" value="{{ one_category.name }}">
+    <button type="submit">Update Category</button>
 </form>
-
-<form action="/category/{{ category.id }}/delete" method="get">
-    <input type="submit" value="DELETE CATEGORY">
-</form>
-
-{% for one_transaction in transactions %}
-    <p>{{ one_transaction.description}} | {{ one_transaction.date}} | {{ one_transaction.type}} | {{ one_transaction.amount}} </p>
-{% endfor %}
-
 </body>
 </html>

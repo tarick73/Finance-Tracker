@@ -37,6 +37,12 @@ def login_handler():
             return "Wrong email or password"
 
 
+@app.route('/logout', methods=['GET'])
+def logout_handler():
+    session.clear()
+    return redirect("login")
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register_handler():
     if request.method == 'GET':
@@ -74,17 +80,29 @@ def get_all_category123():
         return redirect('/login')
 
 
-@app.route('/category/<category_id>', methods=['GET', 'POST'])
-def get_all_category(category_id):
-    if 'user_id' in session:
-        if request.method == 'GET':
-            init_db()
-            res = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])).scalars())
-            curr_category = list(db_session.execute(select(models.Category).filter_by(id=category_id)).scalars())
+@app.route("/category/<category_id>", methods=["GET"])
+def get_category(category_id):
+    if "user_id" in session:
+        init_db()
+        stmt = select(models.Category).filter_by(
+            owner=session["user_id"], id=category_id
+        )
+        result = db_session.execute(stmt).scalars().first()
+        return render_template("one_category.html", one_category=result)
 
-            return render_template("one_category.html", transactions=res, category=curr_category)
-        else:
-            return f"Hello World! DELETE, {category_id}"
+
+@app.route('/category/<category_id>/edit', methods=['POST'])
+def edit_category(category_id):
+    if 'user_id' in session:
+        init_db()
+        category_name = request.form["category_name"]
+        stmt = select(models.Category).filter_by(owner=session["user_id"], id=category_id)
+        result = db_session.execute(stmt).scalars().first()
+        result.name = category_name
+        db_session.commit()
+        return redirect(f"/category/{category_id}")
+    else:
+        return redirect("/login")
 
 
 @app.route('/income', methods=['GET', 'POST'])
