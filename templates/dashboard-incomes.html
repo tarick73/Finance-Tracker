@@ -38,5 +38,47 @@
     <p>No incomes yet</p>
 {% endif %}
 
+<h1>Add new Income</h1>
+
+<form action="/spend" method="post" autocomplete="off">
+  <label>Description:
+    <input type="text" name="description">
+  </label>
+  &nbsp;&nbsp;
+  <label>Amount:
+    <input type="number" name="amount" step="0.01" required>
+  </label>
+  &nbsp;&nbsp;
+  <label>Date:
+    <input type="date" name="date" required>
+  </label>
+  &nbsp;&nbsp;
+  <label>Category:
+    <select name="category" required>
+      {% if categories_system or categories_user %}
+        {% if categories_system %}
+          <optgroup label="System">
+            {% for c in categories_system %}
+              <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+          </optgroup>
+        {% endif %}
+        {% if categories_user %}
+          <optgroup label="My categories">
+            {% for c in categories_user %}
+              <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+          </optgroup>
+        {% endif %}
+      {% else %}
+        <option value="" disabled selected>No categories</option>
+      {% endif %}
+    </select>
+  </label>
+  &nbsp;&nbsp;
+  <button type="submit">Add income</button>
+</form>
+
+
 </body>
 </html>

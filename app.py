@@ -112,7 +112,14 @@ def get_all_income123():
         if request.method == 'GET':
             res = list(db_session.execute(
                 select(models.Transaction).filter_by(owner=session['user_id'], type=INCOME)).scalars().all())
-            return render_template("dashboard-incomes.html", transactions=res)
+
+            categories_system = list(db_session.execute(
+                select(models.Category).filter_by(owner=1)).scalars().all())
+
+            categories_user = list(db_session.execute(
+                select(models.Category).filter_by(owner=session['user_id'])).scalars().all())
+
+            return render_template("dashboard-incomes.html", transactions=res, categories_system = categories_system, categories_user=categories_user)
         else:
             transaction_description = request.form['description']
             transaction_owner = session['user_id']
@@ -150,7 +157,14 @@ def get_all_spend():
         if request.method == 'GET':
             res = list(db_session.execute(
                 select(models.Transaction).filter_by(owner=session['user_id'], type=SPEND)).scalars().all())
-            return render_template("dashboard-spend.html", transactions=res)
+
+            categories_system= list(db_session.execute(
+                select(models.Category).filter_by(owner=1)).scalars().all())
+
+            categories_user = list(db_session.execute(
+                select(models.Category).filter_by(owner=session['user_id'])).scalars().all())
+
+            return render_template("dashboard-spend.html", transactions=res,categories_system=categories_system, categories_user=categories_user)
         else:
             transaction_description = request.form['description']
             transaction_owner = session['user_id']
