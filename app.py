@@ -11,7 +11,19 @@ app.secret_key = 'lkjihasdfnmcx'
 
 SPEND = 1
 INCOME = 2
+
 #tews
+@app.route('/', methods=['POST', 'GET'])
+def main_page():
+    if 'user_id' in session:
+        if request.method == 'GET':
+            user_transactions = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])))
+            user = db_session.get(models.User, session['user_id'])
+            return render_template("main_page.html", user_transactions=user_transactions, user=user)
+        return None
+    else:
+        return redirect('/login')
+
 
 @app.route('/user', methods=['GET', 'DELETE'])
 def user_handler():
