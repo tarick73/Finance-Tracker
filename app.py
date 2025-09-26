@@ -11,7 +11,7 @@ app.secret_key = 'lkjihasdfnmcx'
 
 SPEND = 1
 INCOME = 2
-
+#tewstdfcsdfs
 
 @app.route('/user', methods=['GET', 'DELETE'])
 def user_handler():
