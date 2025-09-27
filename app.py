@@ -1,6 +1,10 @@
+from decimal import Decimal
+
+import datetime
 import sqlite3
 from flask import Flask, request, render_template, session, redirect, abort, url_for
 from unicodedata import category
+from datetime import datetime
 
 import database
 import models
@@ -14,20 +18,64 @@ SPEND = 1
 INCOME = 2
 
 #tews
-@app.route('/', methods=['POST', 'GET'])
+@app.route('/', methods=['GET'])
 def main_page():
-    if 'user_id' in session:
-        if request.method == 'GET':
-            init_db()
-
-            user_transactions = db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])).scalars().all()
-            user = db_session.get(models.User, session['user_id'])
-            categories = db_session.execute(select(models.Category)).scalars().all()
-            cat_by_id = {c.id: c.name for c in categories}
-            return render_template("main_page.html", user_transactions=user_transactions, user=user, cat_by_id=cat_by_id)
-        return None
-    else:
+    if 'user_id' not in session:
         return redirect('/login')
+
+    init_db()
+
+    start_s = request.args.get('start')
+    end_s   = request.args.get('end')
+
+    def parse_date(s):
+        if not s:
+            return None
+        try:
+            return datetime.strptime(s, '%Y-%m-%d').date()
+        except ValueError:
+            return None
+
+    start_date = parse_date(start_s)
+    end_date   = parse_date(end_s)
+    if start_date and end_date and start_date > end_date:
+        start_date, end_date = end_date, start_date
+        start_s, end_s = end_s, start_s
+
+    stmt = select(models.Transaction).filter_by(owner=session['user_id'])
+    if start_date:
+        stmt = stmt.where(models.Transaction.date >= start_date)
+    if end_date:
+        stmt = stmt.where(models.Transaction.date <= end_date)
+    stmt = stmt.order_by(models.Transaction.date.desc(), models.Transaction.id.desc())
+
+    user_transactions = db_session.execute(stmt).scalars().all()
+
+    user = db_session.get(models.User, session['user_id'])
+    categories = db_session.execute(select(models.Category)).scalars().all()
+    cat_by_id = {c.id: c.name for c in categories}
+
+    def to_dec(x):
+        return Decimal(str(x)) if x is not None else Decimal('0')
+    def tcode(v):
+        try:
+            return int(v)
+        except Exception:
+            return v
+
+    total_income  = sum(to_dec(t.amount) for t in user_transactions if tcode(t.type) == 2)  # 2 = Income
+    total_expense = sum(to_dec(t.amount) for t in user_transactions if tcode(t.type) == 1)  # 1 = Expense
+
+    return render_template(
+        "main_page.html",
+        user=user,
+        user_transactions=user_transactions,
+        cat_by_id=cat_by_id,
+        total_income=total_income,
+        total_expense=total_expense,
+        start=start_s,
+        end=end_s
+    )
 
 
 @app.route('/user', methods=['GET', 'DELETE'])
