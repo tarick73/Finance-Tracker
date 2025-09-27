@@ -8,31 +8,24 @@
 
 <h1>Hello, {{ user.name }}, here is your finance situation</h1>
 
-{% if user_transactions and user_transactions|length %}
+{% set TYPE = {1: 'Expense', 2: 'Income', '1': 'Expense', '2': 'Income'} %}
+
+{% if user_transactions %}
   <table border="1">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Description</th>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Type</th>
-        <th>Amount</th>
+        <th>ID</th><th>Description</th><th>Date</th>
+        <th>Category</th><th>Type</th><th>Amount</th>
       </tr>
     </thead>
     <tbody>
-      {% for item in user_transactions %}
-        {% if item is sequence and item|length > 0 %}
-          {% set t = item[0] %}
-        {% else %}
-          {% set t = item %}
-        {% endif %}
+      {% for t in user_transactions %}
         <tr>
           <td>{{ t.id }}</td>
           <td>{{ t.description or '' }}</td>
           <td>{{ t.date }}</td>
-          <td>{{ t.category }}</td>
-          <td>{{ t.type }}</td>
+          <td>{{ cat_by_id.get(t.category, t.category) }}</td>  <!-- тут имя -->
+          <td>{{ TYPE.get(t.type, t.type) }}</td>
           <td>{{ '%.2f'|format(t.amount) if t.amount is not none else '—' }}</td>
         </tr>
       {% endfor %}
@@ -41,6 +34,7 @@
 {% else %}
   <p>No transactions found</p>
 {% endif %}
+
 <nav>
   <a href="{{ url_for('get_all_income123') }}">Incomes</a> |
   <a href="{{ url_for('get_all_spend') }}">Spends</a> |
@@ -48,7 +42,6 @@
   <a href="{{ url_for('logout_handler') }}">Logout</a>
 </nav>
 <hr>
-
 
 </body>
 </html>

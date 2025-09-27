@@ -1,5 +1,6 @@
 import sqlite3
 from flask import Flask, request, render_template, session, redirect
+from unicodedata import category
 
 import database
 import models
@@ -17,9 +18,13 @@ INCOME = 2
 def main_page():
     if 'user_id' in session:
         if request.method == 'GET':
-            user_transactions = list(db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])))
+            init_db()
+
+            user_transactions = db_session.execute(select(models.Transaction).filter_by(owner=session['user_id'])).scalars().all()
             user = db_session.get(models.User, session['user_id'])
-            return render_template("main_page.html", user_transactions=user_transactions, user=user)
+            categories = db_session.execute(select(models.Category)).scalars().all()
+            cat_by_id = {c.id: c.name for c in categories}
+            return render_template("main_page.html", user_transactions=user_transactions, user=user, cat_by_id=cat_by_id)
         return None
     else:
         return redirect('/login')

@@ -16,7 +16,6 @@
             <th>Owner</th>
             <th>Date</th>
             <th>Category</th>
-            <th>Type</th>
             <th>Amount</th>
         </tr>
         </thead>
@@ -28,7 +27,6 @@
                 <td>{{ t.owner }}</td>
                 <td>{{ t.date_str or t.date }}</td>
                 <td>{{ t.category }}</td>
-                <td>{{ t.type }}</td>
                 <td>{{ '%.2f'|format(t.amount) if t.amount is not none else '—' }}</td>
             </tr>
         {% endfor %}
