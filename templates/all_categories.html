@@ -1,20 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>All Categories</title>
+  <meta charset="UTF-8">
+  <title>All Categories</title>
+  <style>
+    .cat-list { list-style: none; padding: 0; margin: 12px 0; }
+    .cat-row  { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #ddd; }
+    .cat-row a { text-decoration: none; }
+    .delete-form { margin: 0; display: inline; } /* ВАЖНО: без margin-left:auto */
+  </style>
 </head>
 <body>
 
-<form action ="/category" method = "post">
-    <label for="category_name"> category name: </label> <br>
-    <input type="category_name" id = "category_name" name = "category_name"><br><br>
-    <input type = "submit" value="Submit">
+<h1>All Categories</h1>
+
+<form action="/category" method="post" style="margin-bottom: 16px;">
+  <label for="category_name">Category name:</label><br>
+  <input type="text" id="category_name" name="category_name" required><br><br>
+  <input type="submit" value="Submit">
 </form>
 
-{% for one_cat in categories %}
-    <p> <a href="/category/{{ one_cat.id }}"> {{ one_cat.name }} </a> {% if one_cat.id !=1 %}<a href="/category/{{ one_cat.id }}/delete"> Delete </a> </p>
-    {% endif %}
-{% endfor %}
+<ul class="cat-list">
+  {% for one_cat in categories %}
+    <li class="cat-row">
+      <a href="/category/{{ one_cat.id }}">{{ one_cat.name }}</a>
+      {% if one_cat.id != 1 %}
+        <form class="delete-form"
+              action="{{ url_for('delete_category', category_id=one_cat.id) }}"
+              method="post">
+          <button type="submit" onclick="return confirm('Delete this category?')">Delete</button>
+        </form>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+
 </body>
 </html>

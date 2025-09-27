@@ -232,6 +232,20 @@ def delete_spend(spend_id):
     db_session.commit()
     return redirect('/spend')
 
+@app.route('/category/<category_id>/delete', methods=['POST'])
+def delete_category(category_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    init_db()
+    cat = db_session.get(models.Category, category_id)
+    if not cat or cat.owner != session['user_id'] :
+        abort(404)
+
+    db_session.delete(cat)
+    db_session.commit()
+    return redirect('/category')
+
 @app.route('/income/<income_id>', methods=['GET', 'PATCH', 'DELETE'])
 def get_all_income(income_id):
     if request.method == 'GET':
