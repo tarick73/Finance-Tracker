@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, request, render_template, session, redirect
+from flask import Flask, request, render_template, session, redirect, abort, url_for
 from unicodedata import category
 
 import database
@@ -156,6 +156,33 @@ def get_all_income123():
     else:
         return redirect('/login')
 
+@app.route('/income/<income_id>/delete', methods=['POST'])
+def delete_income(income_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    init_db()
+    tx = db_session.get(models.Transaction, income_id)
+    if not tx or tx.owner != session['user_id'] or tx.type != INCOME:
+        abort(404)
+
+    db_session.delete(tx)
+    db_session.commit()
+    return redirect('/income')
+
+@app.route('/spend/<spend_id>/delete', methods=['POST'])
+def delete_spend(spend_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    init_db()
+    tx = db_session.get(models.Transaction, spend_id)
+    if not tx or tx.owner != session['user_id'] or tx.type != SPEND:
+        abort(404)
+
+    db_session.delete(tx)
+    db_session.commit()
+    return redirect('/spend')
 
 @app.route('/income/<income_id>', methods=['GET', 'PATCH', 'DELETE'])
 def get_all_income(income_id):

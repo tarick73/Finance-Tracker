@@ -1,35 +1,45 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard — Spends</title>
+    <meta charset="UTF-8" />
+    <title>Dashboard — Incomes</title>
 </head>
 <body>
-<h1>Expense</h1>
+<h1>Incomes</h1>
 
 {% if transactions %}
   <table>
     <thead>
       <tr>
-        <th>ID</th><th>Description</th><th>Owner</th><th>Date</th>
-        <th>Category</th><th>Amount</th>
+        <th>ID</th>
+        <th>Description</th>
+        <th>Owner</th>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      {% for t in transactions %}
-        <tr>
-          <td>{{ t.id }}</td>
-          <td>{{ t.description or '' }}</td>
-          <td>{{ t.owner }}</td>
-          <td>{{ t.date_str or t.date }}</td>
-          <td>{{ t.category }}</td>
-          <td>{{ '%.2f'|format(t.amount) if t.amount is not none else '—' }}</td>
-        </tr>
-      {% endfor %}
+    {% for t in transactions %}
+      <tr>
+        <td>{{ t.id }}</td>
+        <td>{{ t.description or '' }}</td>
+        <td>{{ t.owner }}</td>
+        <td>{{ t.date_str or t.date }}</td>
+        <td>{{ t.category }}</td>
+        <td>{{ '%.2f'|format(t.amount) if t.amount is not none else '—' }}</td>
+        <td>
+          <form action="{{ url_for('delete_spend', spend_id=t.id) }}" method="post" style="display:inline">
+            <button type="submit" onclick="return confirm('Delete this income?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
     </tbody>
   </table>
 {% else %}
-  <p>No spends yet</p>
+  <p>No incomes yet</p>
 {% endif %}
 
 <h1>Add new Expense</h1>
@@ -49,22 +59,21 @@
   &nbsp;&nbsp;
   <label>Category:
     <select name="category" required>
-      {% if categories_system or categories_user %}
-        {% if categories_system %}
-          <optgroup label="System">
-            {% for c in categories_system %}
-              <option value="{{ c.id }}">{{ c.name }}</option>
-            {% endfor %}
-          </optgroup>
-        {% endif %}
-        {% if categories_user %}
-          <optgroup label="My categories">
-            {% for c in categories_user %}
-              <option value="{{ c.id }}">{{ c.name }}</option>
-            {% endfor %}
-          </optgroup>
-        {% endif %}
-      {% else %}
+      {% if categories_system %}
+        <optgroup label="System">
+          {% for c in categories_system %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </optgroup>
+      {% endif %}
+      {% if categories_user %}
+        <optgroup label="My categories">
+          {% for c in categories_user %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </optgroup>
+      {% endif %}
+      {% if not categories_system and not categories_user %}
         <option value="" disabled selected>No categories</option>
       {% endif %}
     </select>
